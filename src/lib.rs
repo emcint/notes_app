@@ -1,5 +1,42 @@
 pub mod root_init {
 
+    use std::{path::{PathBuf}};
+    use std::env::set_current_dir;  
+    use glob::glob;
+
+    pub fn check_path(path: PathBuf) -> bool {
+
+        let dir_found = match set_current_dir(path) {
+            Ok(_) => true,
+            Err(_) => false,
+        };
+
+        return dir_found;
+
+    }
+
+    pub fn scan_path(path: PathBuf) -> Result<Vec<String>, glob::GlobError> {
+
+        let mut data: Vec<String> = Vec::new();
+
+        for entry in glob(&path.to_str().unwrap()).expect("Failed to read glob pattern") {
+            match entry {
+                Ok(_) => data.push(entry.unwrap().into_os_string().to_str().unwrap().to_string()), // better way to do this? // can crash if the path contains non-unicode characters
+                Err(e) => eprintln!("{:?}", e),
+            }
+        };
+
+        return Ok(data);
+    }
+
+    
+
+    pub fn check_initialisation() {
+
+        todo!() // check if the data folder exists, if not create it etc etc
+        
+    }
+    
 }
 
 pub mod verify {
@@ -17,15 +54,15 @@ pub mod verify {
 pub mod application_window {
 
     use eframe::{self, run_native, App, NativeOptions, *};
-    use egui::{CentralPanel, SidePanel, TopBottomPanel, Ui, Window, Label, widgets};
+    use egui::{CentralPanel, SidePanel, TopBottomPanel, Ui, Window, Pos2};
     use std::fs::*;
-    use std::io::{Read, Write};
+    use std::io::{Write};
     use std::path::PathBuf;
-    use std::ptr::write_bytes;
 
     use crate::verify;
 
-    pub struct ApplicationWindow {
+    struct ApplicationWindow {
+        window_size: egui::Vec2,
         user_input: String,
         validity: bool,
         attempts: u128,
@@ -39,11 +76,14 @@ pub mod application_window {
         current_focus: std::path::PathBuf,
         current_file_buffer: String,
         input_cache: Vec<String>,
+        show_confirmation_dialogue: bool,
+        allowed_to_close: bool,
     }
 
     impl Default for ApplicationWindow {
         fn default() -> Self {
             Self {
+                window_size: egui::Vec2::new(0.0, 0.0),
                 user_input: "".to_string(), // used for the login screen
                 validity: false, // determines which state the app is in (login or main)
                 attempts: 0, // used to determine if the user has tried to login too many times
@@ -57,6 +97,8 @@ pub mod application_window {
                 current_focus: std::path::PathBuf::from(String::from("")), // used to store the path to the current file/note
                 current_file_buffer: String::new(), // used to store the contents of the current file/note
                 input_cache: Vec::new(), // todo!
+                show_confirmation_dialogue: false, // used to show the exit confirmation dialogue
+                allowed_to_close: false, // used to determine if the user has confirmed they want to exit
             }
         }
     }
@@ -69,7 +111,25 @@ pub mod application_window {
     }
 
     impl App for ApplicationWindow {
+        
+        fn persist_native_window(&self) -> bool {
+            true
+        }
+        fn persist_egui_memory(&self) -> bool {
+            true
+        }
+
+        fn on_close_event(&mut self) -> bool {
+            
+            self.show_confirmation_dialogue = true;
+            self.allowed_to_close
+        }
+
+
         fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+
+            self.window_size = ctx.screen_rect().size(); // keeps track of the window size
+
             TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
                 ui.vertical(|ui| {
 
@@ -100,7 +160,7 @@ pub mod application_window {
 
             TopBottomPanel::top("top_panel").show(ctx, |ui| {
                 ui.horizontal_centered(|ui: &mut Ui| {
-                    ui.label("Notes");
+                    ui.label("Toolbar Placeholder");
                 });
             });
 
@@ -274,7 +334,48 @@ pub mod application_window {
                     }
                 });
             };
+
+            if self.show_confirmation_dialogue {
+
+
+                
+                egui::Window::new("Save changes?")
+                    .movable(false)
+                    .resizable(false)
+                    .collapsible(false)
+                    .title_bar(false)
+                    .fixed_rect( egui::Rect::from_center_size(Pos2::new(self.window_size.x / 2.0, self.window_size.y / 2.0 ), egui::Vec2::new(150.0, 150.0)))
+                    // .current_pos(Pos2::new((self.window_size.x / 2.0), (self.window_size.y / 2.0)))
+                    .show(ctx, |ui| {
+                        ui.vertical_centered_justified(|ui| {
+
+                            if ui.small_button("Save and quit").clicked() {
+
+                               self.allowed_to_close = true;
+                                frame.close(); 
+                            }
+    
+                            if ui.small_button("Quit without saving").clicked() {
+                                
+                                self.allowed_to_close = true;
+                                frame.close();
+                            }
+
+                            if ui.small_button("Cancel").clicked() {
+
+                                self.allowed_to_close = false;
+                                self.show_confirmation_dialogue = false;
+                                
+                            }
+
+                        });
+                    });
+            }
+
         }
+
+        
+
     }
 
     pub fn new_session() {
@@ -291,7 +392,7 @@ pub mod application_window {
                                   };
                                   options.icon_data = Some(standard_icon);*/
         run_native(
-            "Notes",
+            "Glacier",
             options,
             Box::new(|cc| Box::new(ApplicationWindow::new(cc))),
         )

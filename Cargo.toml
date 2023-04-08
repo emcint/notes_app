@@ -10,4 +10,5 @@ edition = "2021"
 egui = {version = "0.21.0", features = ["persistence"]}
 eframe = "0.21.0"
 open = "4.0.1"
+glob = "0.3.0"
 
