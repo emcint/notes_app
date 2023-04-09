@@ -3,5 +3,5 @@
 use notes_app::application_window::new_session;
 
 fn main() {
-    new_session();
+    new_session()
 }

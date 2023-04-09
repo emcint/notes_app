@@ -1,10 +1,11 @@
 pub mod root_init {
 
-    use glob::glob;
+    use glob::{glob, GlobError};
     use std::env::set_current_dir;
     use std::path::PathBuf;
 
     pub fn check_path(path: PathBuf) -> bool {
+
         let dir_found = match set_current_dir(path) {
             Ok(_) => true,
             Err(_) => false,
@@ -12,25 +13,22 @@ pub mod root_init {
 
         return dir_found;
     }
+    
+    pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> { // todo: return all valid entries as a vector of pathbufs (this will pos. be used to populate the sidebar)
 
-    pub fn scan_path(path: PathBuf) -> Result<Vec<String>, glob::GlobError> {
-        let mut data: Vec<String> = Vec::new();
+        let mut valid_entries = Vec::new();
 
-        for entry in glob(&path.to_str().unwrap()).expect("Failed to read glob pattern") {
-            match entry {
-                Ok(_) => data.push(
-                    entry
-                        .unwrap()
-                        .into_os_string()
-                        .to_str()
-                        .unwrap()
-                        .to_string(),
-                ), // better way to do this? // can crash if the path contains non-unicode characters
-                Err(e) => eprintln!("{:?}", e),
-            }
+        set_current_dir(path).expect("Failed to set current directory");
+        
+        for entry in glob("/Notes/").expect("Glob failed").filter_map(Result::ok) {
+            
+            valid_entries.push(entry);
+            
         }
 
-        return Ok(data);
+        return valid_entries;
+
+
     }
 
     pub fn check_initialisation() {
@@ -53,9 +51,10 @@ pub mod verify {
 pub mod application_window {
 
     use eframe::{self, run_native, App, NativeOptions, *};
-    use egui::{CentralPanel, Pos2, SidePanel, TopBottomPanel, Ui, Window};
+    use egui::{CentralPanel, Pos2, SidePanel, TopBottomPanel, Ui, Window, Style, Context, Rounding};
     use std::fs::*;
     use std::io::Write;
+    use std::ops::Deref;
     use std::path::PathBuf;
 
     use crate::verify;
@@ -79,11 +78,15 @@ pub mod application_window {
         allowed_to_close: bool,
         show_toolbar: bool,
         dark_mode: bool,
+
     }
 
     impl Default for ApplicationWindow {
+
         fn default() -> Self {
+
             Self {
+
                 window_size: egui::Vec2::new(0.0, 0.0),
                 user_input: "".to_string(), // used for the login screen
                 validity: false,            // determines which state the app is in (login or main)
@@ -102,6 +105,7 @@ pub mod application_window {
                 allowed_to_close: false, // used to determine if the user has confirmed they want to exit
                 show_toolbar: true, // used to show/hide the toolbar
                 dark_mode: true, // used to determine if the app should be in dark mode or not
+
             }
         }
     }
@@ -111,6 +115,7 @@ pub mod application_window {
         pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
 
             cc.egui_ctx.set_visuals(egui::Visuals::dark());
+
             Default::default()
 
         }
@@ -142,8 +147,15 @@ pub mod application_window {
         }
 
         fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
+
             self.window_size = ctx.screen_rect().size(); // keeps track of the window size
 
+            // let mut style: egui::Style = (*ctx.style()).clone();
+            // style.visuals.window_rounding = Rounding::same(20.0);
+            // style.visuals.dark_mode = self.dark_mode;
+            // ctx.set_style(style); doesnt work idk why
+            
+            
             TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
                 ui.vertical(|ui| {
                     ui.add_space(1.0);
@@ -463,6 +475,7 @@ pub mod application_window {
     }
 
     pub fn new_session() {
+
         let mut options = NativeOptions::default();
         options.always_on_top = false; //example customisation
                                        // options.centered = true;
