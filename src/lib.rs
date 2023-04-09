@@ -1,42 +1,41 @@
 pub mod root_init {
 
-    use std::{path::{PathBuf}};
-    use std::env::set_current_dir;  
     use glob::glob;
+    use std::env::set_current_dir;
+    use std::path::PathBuf;
 
     pub fn check_path(path: PathBuf) -> bool {
-
         let dir_found = match set_current_dir(path) {
             Ok(_) => true,
             Err(_) => false,
         };
 
         return dir_found;
-
     }
 
     pub fn scan_path(path: PathBuf) -> Result<Vec<String>, glob::GlobError> {
-
         let mut data: Vec<String> = Vec::new();
 
         for entry in glob(&path.to_str().unwrap()).expect("Failed to read glob pattern") {
             match entry {
-                Ok(_) => data.push(entry.unwrap().into_os_string().to_str().unwrap().to_string()), // better way to do this? // can crash if the path contains non-unicode characters
+                Ok(_) => data.push(
+                    entry
+                        .unwrap()
+                        .into_os_string()
+                        .to_str()
+                        .unwrap()
+                        .to_string(),
+                ), // better way to do this? // can crash if the path contains non-unicode characters
                 Err(e) => eprintln!("{:?}", e),
             }
-        };
+        }
 
         return Ok(data);
     }
 
-    
-
     pub fn check_initialisation() {
-
         todo!() // check if the data folder exists, if not create it etc etc
-        
     }
-    
 }
 
 pub mod verify {
@@ -54,9 +53,9 @@ pub mod verify {
 pub mod application_window {
 
     use eframe::{self, run_native, App, NativeOptions, *};
-    use egui::{CentralPanel, SidePanel, TopBottomPanel, Ui, Window, Pos2};
+    use egui::{CentralPanel, Pos2, SidePanel, TopBottomPanel, Ui, Window};
     use std::fs::*;
-    use std::io::{Write};
+    use std::io::Write;
     use std::path::PathBuf;
 
     use crate::verify;
@@ -78,6 +77,8 @@ pub mod application_window {
         input_cache: Vec<String>,
         show_confirmation_dialogue: bool,
         allowed_to_close: bool,
+        show_toolbar: bool,
+        dark_mode: bool,
     }
 
     impl Default for ApplicationWindow {
@@ -85,33 +86,39 @@ pub mod application_window {
             Self {
                 window_size: egui::Vec2::new(0.0, 0.0),
                 user_input: "".to_string(), // used for the login screen
-                validity: false, // determines which state the app is in (login or main)
+                validity: false,            // determines which state the app is in (login or main)
                 attempts: 0, // used to determine if the user has tried to login too many times
-                show_incorrect: false, // used to show the incorrect message on the login screen
+                show_incorrect: false, // used to show/hide the incorrect message on the login screen
                 path: std::path::PathBuf::from(String::from("src\\data")), // used to store the path to the data folder (needs to be changed to a config file)
-                show_new_folder: false, // used to show the new folder window
-                show_new_note: false, // used to show the new note window
+                show_new_folder: false, // used to show/hide the new folder window
+                show_new_note: false,   // used to show/hide the new note window
                 folder_name: "".to_string(), // used to store the name of the new folder
                 note_name: "".to_string(), // used to store the name of the new note
-                show_sync_spinner: false, // used to show the sync spinner
+                show_sync_spinner: false, // used to show/hide the sync spinner
                 current_focus: std::path::PathBuf::from(String::from("")), // used to store the path to the current file/note
                 current_file_buffer: String::new(), // used to store the contents of the current file/note
-                input_cache: Vec::new(), // todo!
-                show_confirmation_dialogue: false, // used to show the exit confirmation dialogue
+                input_cache: Vec::new(),            // todo!
+                show_confirmation_dialogue: false,  // used to show/hide the exit confirmation dialogue
                 allowed_to_close: false, // used to determine if the user has confirmed they want to exit
+                show_toolbar: true, // used to show/hide the toolbar
+                dark_mode: true, // used to determine if the app should be in dark mode or not
             }
         }
     }
 
     impl ApplicationWindow {
+
         pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
+
             cc.egui_ctx.set_visuals(egui::Visuals::dark());
             Default::default()
+
         }
+
     }
 
     impl App for ApplicationWindow {
-        
+
         fn persist_native_window(&self) -> bool {
             true
         }
@@ -120,22 +127,27 @@ pub mod application_window {
         }
 
         fn on_close_event(&mut self) -> bool {
-            
-            self.show_confirmation_dialogue = true;
+
+            if self.validity == true {
+
+                self.show_confirmation_dialogue = true;
+                
+            } else {
+
+                self.allowed_to_close = true;
+
+            }
+
             self.allowed_to_close
         }
 
-
         fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-
             self.window_size = ctx.screen_rect().size(); // keeps track of the window size
 
             TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
                 ui.vertical(|ui| {
-
                     ui.add_space(1.0);
                     ui.horizontal(|ui: &mut Ui| {
-
                         ui.hyperlink_to("Source code", "github.com");
                         ui.add_space(5.0);
                         ui.label("Version 0.1.0");
@@ -152,17 +164,87 @@ pub mod application_window {
                                 ui.spinner();
                             }
                         }
-                        
                     });
                     ui.add_space(1.0);
                 });
             });
+            
+            
+            if self.show_toolbar && self.validity {
 
-            TopBottomPanel::top("top_panel").show(ctx, |ui| {
-                ui.horizontal_centered(|ui: &mut Ui| {
-                    ui.label("Toolbar Placeholder");
+                TopBottomPanel::top("toolbar").show(ctx, |ui| {
+
+                    egui::menu::bar(ui, |ui| {
+
+                        ui.menu_button("File", |ui| {
+                            
+                            if ui.button("New Folder").clicked() {
+                                self.show_new_folder = true;
+                            }
+                            if ui.button("New Note").clicked() {
+                                self.show_new_note = true;
+                            }
+                            if ui.button("Exit").clicked() {
+                                
+                                // code to check if there for unsaved changes (same code needs to be implemented later - modularise)
+                                todo!()
+                            }
+
+                        });
+
+                        ui.menu_button("Edit", |ui| {
+
+                            if ui.button("Undo").clicked() {
+                                todo!()
+                            }
+
+                            if ui.button("Redo").clicked() {
+                                todo!()
+                            }
+                           
+                            if ui.button("Select All").clicked() {
+                                todo!()
+                            }
+
+                        });
+
+                        ui.menu_button("Appearance", |ui| {
+
+                            if ui.button("Hide Toolbar").clicked() {
+                                self.show_toolbar = false;
+                            }
+
+                            ui.toggle_value(&mut self.dark_mode, "Dark Mode"); // shift to theme based system?
+
+                        });
+                        
+                        ui.menu_button("Settings", |ui| {
+
+                            if ui.button("Account").clicked() {
+
+                                todo!()
+                                
+                            }
+
+                            if ui.button("Security").clicked() {
+
+                                todo!()
+
+                            }
+
+                            if ui.button("Perisistance").clicked() {
+
+                                todo!()
+
+                            }
+
+                        });
+
+                    });
+
                 });
-            });
+
+            }
 
             if self.validity == false {
                 CentralPanel::default().show(ctx, |ui| {
@@ -303,11 +385,22 @@ pub mod application_window {
 
                             let path = entry.path();
                             let file_name = path.file_name().unwrap().to_str().unwrap();
-                            if ui.button(file_name).clicked() {
+                            let object_icon = ui.button(file_name);
+                            
+                            
+                            
+                            
+                            if  object_icon.clicked() && path.is_file() {
                                 self.current_focus = path.clone();
                                 self.current_file_buffer = read_to_string(path.clone()).expect("Corrupt path");
 
-                            }; 
+                            } else  {
+                                
+                                self.current_focus = path.clone(); //mk
+
+                            }
+
+                            
                         }
                     });
                 });
@@ -317,65 +410,56 @@ pub mod application_window {
                         ui.label("Select a note to edit, or create a new one.");
                     } else {
                         /* self.current_file
-                            .read_to_string(&mut self.current_file_buffer)
-                            .unwrap(); */
+                        .read_to_string(&mut self.current_file_buffer)
+                        .unwrap(); */
                         let focus_box = ui.text_edit_multiline(&mut self.current_file_buffer);
-                        
+
                         ui.vertical_centered(|ui: &mut Ui| {
                             if ui.button("Save").clicked() {
                                 ui.spinner();
                                 // save the file ethan
                                 // set_permissions(self.current_focus, Permissions::set_readonly(&mut self, false) ); // this needs to be moved outside of the update loop
                                 let mut file = File::create(self.current_focus.clone()).unwrap();
-                                file.write(self.current_file_buffer.clone().as_bytes()).unwrap();
-                                // self.validity = false; 
+                                file.write(self.current_file_buffer.clone().as_bytes())
+                                    .unwrap();
+                                // self.validity = false;
                             };
                         });
                     }
                 });
             };
 
-            if self.show_confirmation_dialogue {
-
-
-                
+            if self.show_confirmation_dialogue && self.validity {
                 egui::Window::new("Save changes?")
                     .movable(false)
                     .resizable(false)
                     .collapsible(false)
                     .title_bar(false)
-                    .fixed_rect( egui::Rect::from_center_size(Pos2::new(self.window_size.x / 2.0, self.window_size.y / 2.0 ), egui::Vec2::new(150.0, 150.0)))
+                    .fixed_rect(egui::Rect::from_center_size(
+                        Pos2::new(self.window_size.x / 2.0, self.window_size.y / 2.0),
+                        egui::Vec2::new(150.0, 150.0),
+                    ))
                     // .current_pos(Pos2::new((self.window_size.x / 2.0), (self.window_size.y / 2.0)))
                     .show(ctx, |ui| {
                         ui.vertical_centered_justified(|ui| {
-
                             if ui.small_button("Save and quit").clicked() {
-
-                               self.allowed_to_close = true;
-                                frame.close(); 
+                                self.allowed_to_close = true;
+                                frame.close();
                             }
-    
+
                             if ui.small_button("Quit without saving").clicked() {
-                                
                                 self.allowed_to_close = true;
                                 frame.close();
                             }
 
                             if ui.small_button("Cancel").clicked() {
-
                                 self.allowed_to_close = false;
                                 self.show_confirmation_dialogue = false;
-                                
                             }
-
                         });
                     });
             }
-
         }
-
-        
-
     }
 
     pub fn new_session() {
