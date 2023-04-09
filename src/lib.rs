@@ -5,7 +5,6 @@ pub mod root_init {
     use std::path::PathBuf;
 
     pub fn check_path(path: PathBuf) -> bool {
-
         let dir_found = match set_current_dir(path) {
             Ok(_) => true,
             Err(_) => false,
@@ -13,22 +12,19 @@ pub mod root_init {
 
         return dir_found;
     }
-    
-    pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> { // todo: return all valid entries as a vector of pathbufs (this will pos. be used to populate the sidebar)
+
+    pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> {
+        // todo: return all valid entries as a vector of pathbufs (this will pos. be used to populate the sidebar)
 
         let mut valid_entries = Vec::new();
 
         set_current_dir(path).expect("Failed to set current directory");
-        
+
         for entry in glob("/Notes/").expect("Glob failed").filter_map(Result::ok) {
-            
             valid_entries.push(entry);
-            
         }
 
         return valid_entries;
-
-
     }
 
     pub fn check_initialisation() {
@@ -51,7 +47,9 @@ pub mod verify {
 pub mod application_window {
 
     use eframe::{self, run_native, App, NativeOptions, *};
-    use egui::{CentralPanel, Pos2, SidePanel, TopBottomPanel, Ui, Window, Style, Context, Rounding};
+    use egui::{
+        CentralPanel, Context, Pos2, Rounding, SidePanel, Style, TopBottomPanel, Ui, Window,
+    };
     use std::fs::*;
     use std::io::Write;
     use std::ops::Deref;
@@ -78,15 +76,11 @@ pub mod application_window {
         allowed_to_close: bool,
         show_toolbar: bool,
         dark_mode: bool,
-
     }
 
     impl Default for ApplicationWindow {
-
         fn default() -> Self {
-
             Self {
-
                 window_size: egui::Vec2::new(0.0, 0.0),
                 user_input: "".to_string(), // used for the login screen
                 validity: false,            // determines which state the app is in (login or main)
@@ -101,29 +95,23 @@ pub mod application_window {
                 current_focus: std::path::PathBuf::from(String::from("")), // used to store the path to the current file/note
                 current_file_buffer: String::new(), // used to store the contents of the current file/note
                 input_cache: Vec::new(),            // todo!
-                show_confirmation_dialogue: false,  // used to show/hide the exit confirmation dialogue
+                show_confirmation_dialogue: false, // used to show/hide the exit confirmation dialogue
                 allowed_to_close: false, // used to determine if the user has confirmed they want to exit
-                show_toolbar: true, // used to show/hide the toolbar
+                show_toolbar: true,      // used to show/hide the toolbar
                 dark_mode: true, // used to determine if the app should be in dark mode or not
-
             }
         }
     }
 
     impl ApplicationWindow {
-
         pub fn new(cc: &eframe::CreationContext<'_>) -> Self {
-
             cc.egui_ctx.set_visuals(egui::Visuals::dark());
 
             Default::default()
-
         }
-
     }
 
     impl App for ApplicationWindow {
-
         fn persist_native_window(&self) -> bool {
             true
         }
@@ -132,30 +120,23 @@ pub mod application_window {
         }
 
         fn on_close_event(&mut self) -> bool {
-
             if self.validity == true {
-
                 self.show_confirmation_dialogue = true;
-                
             } else {
-
                 self.allowed_to_close = true;
-
             }
 
             self.allowed_to_close
         }
 
         fn update(&mut self, ctx: &egui::Context, frame: &mut eframe::Frame) {
-
             self.window_size = ctx.screen_rect().size(); // keeps track of the window size
 
             // let mut style: egui::Style = (*ctx.style()).clone();
             // style.visuals.window_rounding = Rounding::same(20.0);
             // style.visuals.dark_mode = self.dark_mode;
             // ctx.set_style(style); doesnt work idk why
-            
-            
+
             TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
                 ui.vertical(|ui| {
                     ui.add_space(1.0);
@@ -180,16 +161,11 @@ pub mod application_window {
                     ui.add_space(1.0);
                 });
             });
-            
-            
+
             if self.show_toolbar && self.validity {
-
                 TopBottomPanel::top("toolbar").show(ctx, |ui| {
-
                     egui::menu::bar(ui, |ui| {
-
                         ui.menu_button("File", |ui| {
-                            
                             if ui.button("New Folder").clicked() {
                                 self.show_new_folder = true;
                             }
@@ -197,15 +173,12 @@ pub mod application_window {
                                 self.show_new_note = true;
                             }
                             if ui.button("Exit").clicked() {
-                                
                                 // code to check if there for unsaved changes (same code needs to be implemented later - modularise)
                                 todo!()
                             }
-
                         });
 
                         ui.menu_button("Edit", |ui| {
-
                             if ui.button("Undo").clicked() {
                                 todo!()
                             }
@@ -213,49 +186,35 @@ pub mod application_window {
                             if ui.button("Redo").clicked() {
                                 todo!()
                             }
-                           
+
                             if ui.button("Select All").clicked() {
                                 todo!()
                             }
-
                         });
 
                         ui.menu_button("Appearance", |ui| {
-
                             if ui.button("Hide Toolbar").clicked() {
                                 self.show_toolbar = false;
                             }
 
                             ui.toggle_value(&mut self.dark_mode, "Dark Mode"); // shift to theme based system?
-
                         });
-                        
+
                         ui.menu_button("Settings", |ui| {
-
                             if ui.button("Account").clicked() {
-
                                 todo!()
-                                
                             }
 
                             if ui.button("Security").clicked() {
-
                                 todo!()
-
                             }
 
                             if ui.button("Perisistance").clicked() {
-
                                 todo!()
-
                             }
-
                         });
-
                     });
-
                 });
-
             }
 
             if self.validity == false {
@@ -398,21 +357,14 @@ pub mod application_window {
                             let path = entry.path();
                             let file_name = path.file_name().unwrap().to_str().unwrap();
                             let object_icon = ui.button(file_name);
-                            
-                            
-                            
-                            
-                            if  object_icon.clicked() && path.is_file() {
+
+                            if object_icon.clicked() && path.is_file() {
                                 self.current_focus = path.clone();
-                                self.current_file_buffer = read_to_string(path.clone()).expect("Corrupt path");
-
-                            } else  {
-                                
+                                self.current_file_buffer =
+                                    read_to_string(path.clone()).expect("Corrupt path");
+                            } else {
                                 self.current_focus = path.clone(); //mk
-
                             }
-
-                            
                         }
                     });
                 });
@@ -475,7 +427,6 @@ pub mod application_window {
     }
 
     pub fn new_session() {
-
         let mut options = NativeOptions::default();
         options.always_on_top = false; //example customisation
                                        // options.centered = true;
