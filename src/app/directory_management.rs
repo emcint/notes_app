@@ -1,5 +1,3 @@
-
-
 use glob::{glob, GlobError};
 use std::env::set_current_dir;
 use std::path::PathBuf;

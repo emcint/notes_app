@@ -1,9 +1,5 @@
-
-
 use eframe::{self, run_native, App, NativeOptions, *};
-use egui::{
-    CentralPanel, Context, Pos2, Rounding, SidePanel, Style, TopBottomPanel, Ui, Window,
-};
+use egui::{CentralPanel, Context, Pos2, Rounding, SidePanel, Style, TopBottomPanel, Ui, Window};
 use std::fs::*;
 use std::io::Write;
 use std::ops::Deref;
@@ -52,10 +48,10 @@ impl Default for ApplicationWindow {
             current_focus: std::path::PathBuf::from(String::from("")), // used to store the path to the current file/note
             current_file_buffer: String::new(), // used to store the contents of the current file/note
             input_cache: Vec::new(),            // todo!
-            show_confirmation_dialogue: false, // used to show/hide the exit confirmation dialogue
+            show_confirmation_dialogue: false,  // used to show/hide the exit confirmation dialogue
             allowed_to_close: false, // used to determine if the user has confirmed they want to exit
             show_toolbar: true,      // used to show/hide the toolbar
-            dark_mode: true, // used to determine if the app should be in dark mode or not
+            dark_mode: true,         // used to determine if the app should be in dark mode or not
         }
     }
 }
@@ -184,12 +180,12 @@ impl App for ApplicationWindow {
                         self.show_incorrect = false;
                     };
                     ui.add_space(5.0);
-                    if input_field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter))
-                    {
+                    if input_field.lost_focus() && ui.input(|i| i.key_pressed(egui::Key::Enter)) {
                         ui.add_space(1.0);
                         ui.spinner();
 
-                        self.validity = super::authentication::authenticate(self.user_input.clone());
+                        self.validity =
+                            super::authentication::authenticate(self.user_input.clone());
 
                         if self.validity == false {
                             self.show_incorrect = true;
@@ -212,7 +208,8 @@ impl App for ApplicationWindow {
                         ui.add_space(1.0);
                         ui.spinner();
 
-                        self.validity = super::authentication::authenticate(self.user_input.clone());
+                        self.validity =
+                            super::authentication::authenticate(self.user_input.clone());
 
                         if self.validity == false {
                             self.show_incorrect = true;
@@ -275,11 +272,7 @@ impl App for ApplicationWindow {
                                     ui.spinner();
                                     let mut path = self.path.clone();
                                     path.push(self.note_name.clone());
-                                    match OpenOptions::new()
-                                        .write(true)
-                                        .create(true)
-                                        .open(&path)
-                                    {
+                                    match OpenOptions::new().write(true).create(true).open(&path) {
                                         Ok(_) => println!("Created file"),
                                         Err(e) => println!("Error: {}", e),
                                     }
@@ -386,16 +379,16 @@ impl App for ApplicationWindow {
 pub fn new_session() {
     let mut options = NativeOptions::default();
     options.always_on_top = false; //example customisation
-                                    // options.centered = true;
+                                   // options.centered = true;
     options.resizable = true;
     options.min_window_size = Some(egui::Vec2::new(300.0, 400.0));
     options.decorated = true; //should eventually be false with custom bar
-                                /* let standard_icon = IconData {
-                                    rgba: include_bytes!("assets\\icons8-note-96.rgba").to_vec(),
-                                    width: 96,
-                                    height: 96,
-                                };
-                                options.icon_data = Some(standard_icon);*/
+                              /* let standard_icon = IconData {
+                                  rgba: include_bytes!("assets\\icons8-note-96.rgba").to_vec(),
+                                  width: 96,
+                                  height: 96,
+                              };
+                              options.icon_data = Some(standard_icon);*/
     run_native(
         "Glacier",
         options,
