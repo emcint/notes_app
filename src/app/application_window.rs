@@ -9,6 +9,7 @@ use std::str::FromStr;
 use crate::app::authentication::*;
 
 use super::authentication;
+use super::directory_management::initialisation;
 
 struct ApplicationWindow {
     window_size: egui::Vec2,
@@ -39,7 +40,7 @@ impl Default for ApplicationWindow {
             validity: false,            // determines which state the app is in (login or main)
             attempts: 0, // used to determine if the user has tried to login too many times
             show_incorrect: false, // used to show/hide the incorrect message on the login screen
-            path: std::path::PathBuf::from_str("src/data").unwrap(), // used to store the path to the data folder (needs to be changed to a config file)
+            path: initialisation(), // used to store the path to the notes folder (needs to be changed to a config file?)
             show_new_folder: false, // used to show/hide the new folder window
             show_new_note: false,   // used to show/hide the new note window
             folder_name: "".to_string(), // used to store the name of the new folder
@@ -333,7 +334,10 @@ impl App for ApplicationWindow {
                             ui.spinner();
                             // save the file ethan
                             // set_permissions(self.current_focus, Permissions::set_readonly(&mut self, false) ); // this needs to be moved outside of the update loop
-                            let mut file = File::create(self.current_focus.clone()).unwrap();
+                            let mut perms = std::fs::metadata(&self.current_focus).expect("Error getting file metadata ").permissions();
+                            perms.set_readonly(false);
+                            std::fs::set_permissions(&self.current_focus, perms).expect("Error setting file permissions");
+                            let mut file = File::create(&self.current_focus).expect("Error handling file");
                             file.write(self.current_file_buffer.clone().as_bytes())
                                 .unwrap();
                             // self.validity = false;
