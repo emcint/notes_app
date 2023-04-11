@@ -29,6 +29,10 @@ pub fn initialisation() -> PathBuf {
     
     dir.push("Notes");
 
+    if !dir.exists() {
+        std::fs::create_dir(&dir).expect("Failed to create directory, check permissions or parents");
+    }
+
     return dir;
     
 }
