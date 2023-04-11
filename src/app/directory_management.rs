@@ -1,4 +1,4 @@
-use glob::{glob, GlobError};
+use glob::{glob};
 use std::env::set_current_dir;
 use std::path::PathBuf;
 
@@ -14,7 +14,7 @@ pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> {
         valid_entries.push(entry);
     }
 
-    return valid_entries;
+    valid_entries
 }
 
 pub fn initialisation() -> PathBuf {
@@ -33,6 +33,6 @@ pub fn initialisation() -> PathBuf {
         std::fs::create_dir(&dir).expect("Failed to create directory, check permissions or parents");
     }
 
-    return dir;
+    dir
     
 }

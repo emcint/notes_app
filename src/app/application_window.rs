@@ -1,14 +1,14 @@
 use eframe::{self, run_native, App, NativeOptions, *};
-use egui::{CentralPanel, Context, Pos2, Rounding, SidePanel, Style, TopBottomPanel, Ui, Window};
+use egui::{CentralPanel, Pos2, SidePanel, TopBottomPanel, Ui, Window};
 use std::fs::*;
 use std::io::Write;
-use std::ops::Deref;
+
 use std::path::PathBuf;
-use std::str::FromStr;
 
-use crate::app::authentication::*;
 
-use super::authentication;
+
+
+
 use super::directory_management::initialisation;
 
 struct ApplicationWindow {
@@ -74,7 +74,7 @@ impl App for ApplicationWindow {
     }
 
     fn on_close_event(&mut self) -> bool {
-        if self.validity == true {
+        if self.validity {
             self.show_confirmation_dialogue = true;
         } else {
             self.allowed_to_close = true;
@@ -171,7 +171,7 @@ impl App for ApplicationWindow {
             });
         }
 
-        if self.validity == false {
+        if !self.validity {
             CentralPanel::default().show(ctx, |ui| {
                 ui.vertical_centered(|ui: &mut Ui| {
                     ui.heading("Enter Password:");
@@ -188,7 +188,7 @@ impl App for ApplicationWindow {
                         self.validity =
                             super::authentication::authenticate(self.user_input.clone());
 
-                        if self.validity == false {
+                        if !self.validity {
                             self.show_incorrect = true;
                             self.attempts += 1;
                         };
@@ -201,7 +201,7 @@ impl App for ApplicationWindow {
                         };
                         */
                     };
-                    if self.show_incorrect == true {
+                    if self.show_incorrect {
                         ui.label("Incorrect");
                         ui.add_space(5.0);
                     };
@@ -212,7 +212,7 @@ impl App for ApplicationWindow {
                         self.validity =
                             super::authentication::authenticate(self.user_input.clone());
 
-                        if self.validity == false {
+                        if !self.validity {
                             self.show_incorrect = true;
                             self.attempts += 1;
                         };
@@ -327,7 +327,7 @@ impl App for ApplicationWindow {
                     /* self.current_file
                     .read_to_string(&mut self.current_file_buffer)
                     .unwrap(); */
-                    let focus_box = ui.text_edit_multiline(&mut self.current_file_buffer);
+                    let _focus_box = ui.text_edit_multiline(&mut self.current_file_buffer);
 
                     ui.vertical_centered(|ui: &mut Ui| {
                         if ui.button("Save").clicked() {
