@@ -3,5 +3,6 @@
 use notes_app::app::*;
 
 fn main() {
+    directory_management::initialisation();
     application_window::new_session();
 }

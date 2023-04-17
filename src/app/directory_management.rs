@@ -1,5 +1,6 @@
 use glob::{glob};
 use std::env::set_current_dir;
+use std::fs::{create_dir, File};
 use std::path::PathBuf;
 
 pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> {
@@ -30,7 +31,13 @@ pub fn initialisation() -> PathBuf {
     dir.push("Notes");
 
     if !dir.exists() {
-        std::fs::create_dir(&dir).expect("Failed to create directory, check permissions or parents");
+        create_dir(&dir).expect("Failed to create directory, check permissions or parents");
+    }
+
+    let mut pass_file = dir.clone();
+    pass_file.push("password.txt");
+    if !pass_file.exists() {
+        File::create(pass_file).expect("Error creating password file");
     }
 
     dir

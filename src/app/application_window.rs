@@ -258,7 +258,7 @@ impl App for ApplicationWindow {
                             });
                         });
                     };
-                    if ui.small_button("📁+").clicked() {
+                    if ui.button("📁+").clicked() {
                         self.show_new_folder = true;
                     };
 
@@ -286,7 +286,7 @@ impl App for ApplicationWindow {
                             });
                         });
                     };
-                    if ui.small_button("📄+").clicked() {
+                    if ui.button("📄+").clicked() {
                         self.show_new_note = true;
                     };
                 });
@@ -360,17 +360,17 @@ impl App for ApplicationWindow {
                 // .current_pos(Pos2::new((self.window_size.x / 2.0), (self.window_size.y / 2.0)))
                 .show(ctx, |ui| {
                     ui.vertical_centered_justified(|ui| {
-                        if ui.small_button("Save and quit").clicked() {
+                        if ui.button("Save and quit").clicked() {
                             self.allowed_to_close = true;
                             frame.close();
                         }
 
-                        if ui.small_button("Quit without saving").clicked() {
+                        if ui.button("Quit without saving").clicked() {
                             self.allowed_to_close = true;
                             frame.close();
                         }
 
-                        if ui.small_button("Cancel").clicked() {
+                        if ui.button("Cancel").clicked() {
                             self.allowed_to_close = false;
                             self.show_confirmation_dialogue = false;
                         }
