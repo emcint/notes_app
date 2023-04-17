@@ -1,7 +1,11 @@
+use argon2::PasswordHash;
 use glob::glob;
 use std::env::set_current_dir;
 use std::fs::{create_dir, File};
+use std::io::Write;
 use std::path::PathBuf;
+
+use super::authentication::generate_new;
 
 pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> {
     // todo: return all valid entries as a vector of pathbufs (this will pos. be used to populate the sidebar)
@@ -34,8 +38,10 @@ pub fn initialisation() -> PathBuf {
 
     let mut pass_file = dir.clone();
     pass_file.push("password.txt");
-    if !pass_file.exists() {
-        File::create(pass_file).expect("Error creating password file");
+    
+    if pass_file.exists() {
+        let mut pass_file = File::create(pass_file).expect("Error creating password file");
+        pass_file.write(generate_new("password".to_string()).as_bytes()).expect("Error writing to password file");
     }
 
     dir

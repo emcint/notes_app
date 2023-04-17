@@ -15,11 +15,7 @@ pub fn authenticate(user_password: String, path: PathBuf) -> bool {
         Ok(_) => true,
         Err(_) => false,
     };
-    return result;
-    
-    
-
-    
+    return result;  
 }
 
 pub fn generate_new(password: String) -> String {
