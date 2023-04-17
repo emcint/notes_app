@@ -1,10 +1,9 @@
-use glob::{glob};
+use glob::glob;
 use std::env::set_current_dir;
 use std::fs::{create_dir, File};
 use std::path::PathBuf;
 
 pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> {
-
     // todo: return all valid entries as a vector of pathbufs (this will pos. be used to populate the sidebar)
 
     let mut valid_entries = Vec::new();
@@ -19,15 +18,14 @@ pub fn check_dir(path: &PathBuf) -> Vec<PathBuf> {
 }
 
 pub fn initialisation() -> PathBuf {
-
     // check if the data folder exists, if not create it etc etc
 
     let mut dir: PathBuf = directories::UserDirs::new()
-    .expect("Failed to get user directories")
-    .document_dir()
-    .expect("Failed to get document directory")
-    .to_path_buf();
-    
+        .expect("Failed to get user directories")
+        .document_dir()
+        .expect("Failed to get document directory")
+        .to_path_buf();
+
     dir.push("Notes");
 
     if !dir.exists() {
@@ -41,5 +39,4 @@ pub fn initialisation() -> PathBuf {
     }
 
     dir
-    
 }

@@ -5,10 +5,6 @@ use std::io::Write;
 
 use std::path::PathBuf;
 
-
-
-
-
 use super::directory_management::initialisation;
 
 struct ApplicationWindow {
@@ -36,8 +32,8 @@ impl Default for ApplicationWindow {
     fn default() -> Self {
         Self {
             window_size: egui::Vec2::new(0.0, 0.0),
-            user_input: "".to_string(), // used for the login screen
-            validity: false,            // determines which state the app is in (login or main)
+            user_input: "".to_string(),  // used for the login screen
+            validity: false,             // determines which state the app is in (login or main)
             attempts: 0, // used to determine if the user has tried to login too many times
             show_incorrect: false, // used to show/hide the incorrect message on the login screen
             path: initialisation(), // used to store the path to the notes folder (needs to be changed to a config file?)
@@ -185,8 +181,10 @@ impl App for ApplicationWindow {
                         ui.add_space(1.0);
                         ui.spinner();
 
-                        self.validity =
-                            super::authentication::authenticate(self.user_input.clone());
+                        self.validity = super::authentication::authenticate(
+                            self.user_input.clone(),
+                            self.path.clone().join("password.txt"),
+                        );
 
                         if !self.validity {
                             self.show_incorrect = true;
@@ -209,8 +207,10 @@ impl App for ApplicationWindow {
                         ui.add_space(1.0);
                         ui.spinner();
 
-                        self.validity =
-                            super::authentication::authenticate(self.user_input.clone());
+                        self.validity = super::authentication::authenticate(
+                            self.user_input.clone(),
+                            self.path.clone().join("password.txt"),
+                        );
 
                         if !self.validity {
                             self.show_incorrect = true;
@@ -334,10 +334,14 @@ impl App for ApplicationWindow {
                             ui.spinner();
                             // save the file ethan
                             // set_permissions(self.current_focus, Permissions::set_readonly(&mut self, false) ); // this needs to be moved outside of the update loop
-                            let mut perms = std::fs::metadata(&self.current_focus).expect("Error getting file metadata ").permissions();
+                            let mut perms = std::fs::metadata(&self.current_focus)
+                                .expect("Error getting file metadata ")
+                                .permissions();
                             perms.set_readonly(false);
-                            std::fs::set_permissions(&self.current_focus, perms).expect("Error setting file permissions");
-                            let mut file = File::create(&self.current_focus).expect("Error handling file");
+                            std::fs::set_permissions(&self.current_focus, perms)
+                                .expect("Error setting file permissions");
+                            let mut file =
+                                File::create(&self.current_focus).expect("Error handling file");
                             file.write(self.current_file_buffer.clone().as_bytes())
                                 .unwrap();
                             // self.validity = false;
