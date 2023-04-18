@@ -7,14 +7,18 @@ use argon2::{
 
 pub fn authenticate(user_password: String, path: PathBuf) -> bool {
 
-    let user_password_bytes = user_password.as_bytes();
 
-    let hash_string = std::fs::read_to_string(path).expect("Unable to read file");
-    let hash = argon2::PasswordHash::new(&hash_string).expect("Unable to parse hash");
-    let result = match Argon2::default().verify_password(user_password_bytes, &hash) {
-        Ok(_) => true,
-        Err(_) => false,
-    };
+
+        let user_password_bytes = user_password.as_bytes();
+
+        let hash_string = std::fs::read_to_string(path).unwrap_or_else(op);
+        let hash_string
+        let hash = argon2::PasswordHash::new(&hash_string).expect("Unable to parse hash");
+        let result = match Argon2::default().verify_password(user_password_bytes, &hash) {
+            Ok(_) => true,
+            Err(_) => false,
+        };
+    
     return result;  
 }
 
