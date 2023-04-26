@@ -11,7 +11,7 @@ struct ApplicationWindow {
     window_size: egui::Vec2,
     user_input: String,
     validity: bool,
-    attempts: u128,
+    attempts: i32,
     show_incorrect: bool,
     path: std::path::PathBuf,
     show_new_folder: bool,

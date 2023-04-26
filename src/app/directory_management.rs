@@ -1,4 +1,3 @@
-use argon2::PasswordHash;
 use glob::glob;
 use std::env::set_current_dir;
 use std::fs::{create_dir, File};
@@ -42,6 +41,8 @@ pub fn initialisation() -> PathBuf {
     if pass_file.exists() {
         let mut pass_file = File::create(pass_file).expect("Error creating password file");
         pass_file.write(generate_new("password".to_string()).as_bytes()).expect("Error writing to password file");
+    } else {
+        panic!()
     }
 
     dir
