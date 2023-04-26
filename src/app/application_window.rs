@@ -361,7 +361,6 @@ impl App for ApplicationWindow {
                     Pos2::new(self.window_size.x / 2.0, self.window_size.y / 2.0),
                     egui::Vec2::new(150.0, 150.0),
                 ))
-                // .current_pos(Pos2::new((self.window_size.x / 2.0), (self.window_size.y / 2.0)))
                 .show(ctx, |ui| {
                     ui.vertical_centered_justified(|ui| {
                         if ui.button("Save and quit").clicked() {
