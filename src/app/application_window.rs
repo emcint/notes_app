@@ -21,7 +21,6 @@ struct ApplicationWindow {
     show_sync_spinner: bool,
     current_focus: std::path::PathBuf,
     current_file_buffer: String,
-    input_cache: Vec<String>,
     show_confirmation_dialogue: bool,
     allowed_to_close: bool,
     show_toolbar: bool,
@@ -44,7 +43,6 @@ impl Default for ApplicationWindow {
             show_sync_spinner: false, // used to show/hide the sync spinner
             current_focus: std::path::PathBuf::from(String::from("")), // used to store the path to the current file/note
             current_file_buffer: String::new(), // used to store the contents of the current file/note
-            input_cache: Vec::new(),            // todo!
             show_confirmation_dialogue: false,  // used to show/hide the exit confirmation dialogue
             allowed_to_close: false, // used to determine if the user has confirmed they want to exit
             show_toolbar: true,      // used to show/hide the toolbar
@@ -300,13 +298,17 @@ impl App for ApplicationWindow {
                         let entry = match entry {
                             Ok(entry) => entry,
                             Err(e) => {
-                                println!("error1: {}", e);
-                                continue;
+                                println!("error1: {}", e); // Just print the error - we don't need to show invalid entries in the UI
+                                continue; // Send to an Err log eventually 
                             }
                         };
 
                         let path = entry.path();
-                        let file_name = path.file_name().unwrap().to_str().unwrap();
+                        let file_name = path
+                                            .file_name()
+                                            .unwrap()
+                                            .to_str() // TODO
+                                            .unwrap();
                         let object_icon = ui.button(file_name);
 
                         if object_icon.clicked() && path.is_file() {
@@ -314,7 +316,7 @@ impl App for ApplicationWindow {
                             self.current_file_buffer =
                                 read_to_string(path.clone()).expect("Corrupt path");
                         } else {
-                            self.current_focus = path.clone(); //mk
+                            self.current_focus = path.clone();
                         }
                     }
                 });
@@ -389,7 +391,7 @@ pub fn new_session() {
                                    // options.centered = true;
     options.resizable = true;
     options.min_window_size = Some(egui::Vec2::new(300.0, 400.0));
-    options.decorated = true; //should eventually be false with custom bar
+    options.decorated = true; //should eventually be false with custom bar + export to KDE global menu
                               /* let standard_icon = IconData {
                                   rgba: include_bytes!("assets\\icons8-note-96.rgba").to_vec(),
                                   width: 96,
@@ -401,5 +403,5 @@ pub fn new_session() {
         options,
         Box::new(|cc| Box::new(ApplicationWindow::new(cc))),
     )
-    .expect("Failed to create application window");
+    .expect("Failed to create application window"); // If this fails we have bigger problems
 }
